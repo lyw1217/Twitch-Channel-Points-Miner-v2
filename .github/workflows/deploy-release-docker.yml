@@ -1,8 +1,9 @@
-name: deploy-docker
+name: deploy-release-docker
 
 on:
   push:
-    branches: [master]
+    tags:
+      - '*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -12,6 +13,9 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v3
+
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0
@@ -32,7 +36,7 @@ jobs:
           context: .
           push: true
           tags: |
-            rdavidoff/twitch-channel-points-miner-v2:latest
+            rdavidoff/twitch-channel-points-miner-v2:$RELEASE_VERSION
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           build-args: BUILDX_QEMU_ENV=true
 
