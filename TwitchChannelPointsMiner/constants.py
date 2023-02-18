@@ -3,11 +3,13 @@ URL = "https://www.twitch.tv"
 IRC = "irc.chat.twitch.tv"
 IRC_PORT = 6667
 WEBSOCKET = "wss://pubsub-edge.twitch.tv/v1"
-CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"  # Browser
-# CLIENT_ID = "kd1unb4b3q4t58fwlpcbzcbnm76a8fp" # Android App
-# CLIENT_ID = "851cqzxpb9bqu9z6galo155du" # iOS App
+CLIENT_ID = "ue6666qo983tsx6so1t0vnawi233wa"        # TV
+# CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"      # Browser
+# CLIENT_ID = "kd1unb4b3q4t58fwlpcbzcbnm76a8fp"     # Android App
+# CLIENT_ID = "851cqzxpb9bqu9z6galo155du"           # iOS App
 DROP_ID = "c2542d6d-cd10-4532-919b-3d19f30a768b"
-CLIENT_VERSION = "32d439b2-bd5b-4e35-b82a-fae10b04da70"
+# CLIENT_VERSION = "32d439b2-bd5b-4e35-b82a-fae10b04da70"  # Android App
+CLIENT_VERSION = "ef928475-9403-42f2-8a34-55784bd08e16"  # Browser
 
 USER_AGENTS = {
     "Windows": {
@@ -20,7 +22,8 @@ USER_AGENTS = {
     },
     "Android": {
         # "App": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G975N Build/N2G48C) tv.twitch.android.app/13.4.1/1304010"
-        "App": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G977N Build/LMY48Z) tv.twitch.android.app/14.3.2/1403020"
+        "App": "Dalvik/2.1.0 (Linux; U; Android 7.1.2; SM-G977N Build/LMY48Z) tv.twitch.android.app/14.3.2/1403020",
+        "TV": "Mozilla/5.0 (Linux; Android 7.1; Smart Box C1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36"
     }
 }
 
@@ -75,7 +78,7 @@ class GQLOperations:
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "9988086babc615a918a1e9a722ff41d98847acac822645209ac7379eecb27152",
+                "sha256Hash": "1530a003a7d374b0380b79db0be0534f30ff46e61cffa2bc0e2468a909fbc024",
             }
         },
     }
@@ -99,11 +102,11 @@ class GQLOperations:
     }
     Inventory = {
         "operationName": "Inventory",
-        "variables": {},
+        "variables": {"fetchRewardCampaigns": True},
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "e0765ebaa8e8eeb4043cc6dfeab3eac7f682ef5f724b81367e6e55c7aef2be4c",
+                "sha256Hash": "37fea486d6179047c41d0f549088a4c3a7dd60c05c70956a1490262f532dccd9",
             }
         },
     }
@@ -140,7 +143,7 @@ class GQLOperations:
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "b19ee96a0e79e3f8281c4108bc4c7b3f232266db6f96fd04a339ab393673a075",
+                "sha256Hash": "e589e213f16d9b17c6f0a8ccd18bdd6a8a6b78bc9db67a75efd43793884ff4e5",
             }
         },
     }
