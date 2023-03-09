@@ -64,12 +64,21 @@ class GQLOperations:
             }
         },
     }
+    CommunityMomentCallout_Claim = {
+        "operationName": "CommunityMomentCallout_Claim",
+        "extensions": {
+            "persistedQuery": {
+                "version": 1,
+                "sha256Hash": "e2d67415aead910f7f9ceb45a77b750a1e1d9622c936d832328a0689e054db62",
+            }
+        },
+    }
     DropsPage_ClaimDropRewards = {
         "operationName": "DropsPage_ClaimDropRewards",
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "2f884fa187b8fadb2a49db0adc033e636f7b6aaee6e76de1e2bba9a7baf0daf6",
+                "sha256Hash": "a455deea71bdc9015b78eb49f4acfbce8baa7ccbedd28e549bb025bd0f751930",
             }
         },
     }
@@ -125,7 +134,7 @@ class GQLOperations:
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "c4d61d7b71d03b324914d3cf8ca0bc23fe25dacf54120cc954321b9704a3f4e2",
+                "sha256Hash": "8d5d9b5e3f088f9d1ff39eb2caab11f7a4cf7a3353da9ce82b5778226ff37268",
             }
         },
     }
@@ -134,7 +143,7 @@ class GQLOperations:
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "14b5e8a50777165cfc3971e1d93b4758613fe1c817d5542c398dce70b7a45c05",
+                "sha256Hash": "f6396f5ffdde867a8f6f6da18286e4baf02e5b98d14689a69b5af320a4c7b7b8",
             }
         },
     }
@@ -182,7 +191,7 @@ class GQLOperations:
         "extensions": {
             "persistedQuery": {
                 "version": 1,
-                "sha256Hash": "4b9cb31b54b9213e5760f2f6e9e935ad09924cac2f78aac51f8a64d85f028ed0",
+                "sha256Hash": "eecf815273d3d949e5cf0085cc5084cd8a1b5b7b6f7990cf43cb0beadf546907",
             }
         },
     }

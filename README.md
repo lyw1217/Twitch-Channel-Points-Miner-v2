@@ -41,7 +41,6 @@ Currently, we have a lot of PRs requests opened, but the time to test and improv
     - [Final report](#final-report)
 4. 🧐 [How to use](#how-to-use)
     - [Cloning](#by-cloning-the-repository)
-    - [pip](#pip)
     - [Docker](#docker)
     - [Replit](#replit)
     - [Limits](#limits)
@@ -217,6 +216,7 @@ twitch_miner = TwitchChannelPointsMiner(
         Priority.ORDER                          # - When we have all of the drops claimed and no watch-streak available, use the order priority (POINTS_ASCENDING, POINTS_DESCEDING)
     ],
     enable_analytics=False,			# Disables Analytics if False. Disabling it significantly reduces memory consumption
+    disable_ssl_cert_verification=False,	# Set to True at your own risk and only to fix SSL: CERTIFICATE_VERIFY_FAILED error
     logger_settings=LoggerSettings(
         save=True,                              # If you want to save logs in a file (suggested)
         console_level=logging.INFO,             # Level of logs - use logging.DEBUG for more info
@@ -245,6 +245,7 @@ twitch_miner = TwitchChannelPointsMiner(
         make_predictions=True,                  # If you want to Bet / Make prediction
         follow_raid=True,                       # Follow raid to obtain more points
         claim_drops=True,                       # We can't filter rewards base on stream. Set to False for skip viewing counter increase and you will never obtain a drop reward from this script. Issue #21
+	claim_moments=True,                     # If set to True, https://help.twitch.tv/s/article/moments will be claimed when available
         watch_streak=True,                      # If a streamer go online change the priority of streamers array and catch the watch screak. Issue #11
         chat=ChatPresence.ONLINE,               # Join irc chat to increase watch-time [ALWAYS, NEVER, ONLINE, OFFLINE]
         bet=BetSettings(
@@ -320,11 +321,6 @@ pip install -r requirements.txt
 ```
 
 Start mining! `python run.py` 🥳
-
-### <s>pip</s> deprecated
-<s>Install the package via pip, you will find a stable version - maybe a different version from the master branch.
-- `pip install Twitch-Channel-Points-Miner-v2`
-- Exceute the run.py file `python run.py` 🥳</s>
 
 ### Docker
 
@@ -519,6 +515,7 @@ Discord(
  - `BET_FAILED`
  - `BET_START`
  - `BONUS_CLAIM`
+ - `MOMENT_CLAIM`
  - `JOIN_RAID`
  - `DROP_CLAIM`
  - `DROP_STATUS`
@@ -529,6 +526,7 @@ Discord(
 | `make_predictions` 	| bool        	| True                           	| Choose if you want to make predictions / bet or not                                                                                                  	                                                                            |
 | `follow_raid`      	| bool        	| True                           	| Choose if you want to follow raid +250 points                                                                                                        	                                                                            |
 | `claim_drops`      	| bool        	| True                           	| If this value is True, the script will increase the watch-time for the current game. With this, you can claim the drops from Twitch Inventory [#21](https://github.com/Tkd-Alex/Twitch-Channel-Points-Miner-v2/issues/21)         |
+| `claim_moments`      	| bool        	| True                           	| If set to True, [moments](https://help.twitch.tv/s/article/moments) will be claimed when available         |
 | `watch_streak`     	| bool        	| True                           	| Choose if you want to change a priority for these streamers and try to catch the Watch Streak event [#11](https://github.com/Tkd-Alex/Twitch-Channel-Points-Miner-v2/issues/11)                                                   |
 | `bet`              	| BetSettings 	|  	                                | Rules to follow for the bet                                                                                                                                                                                                       |
 | `chat` 	            | ChatPresence  | ONLINE    	                    | Join IRC-Chat to appear online in chat and attempt to get StreamElements channel points and increase view-time  [#47](https://github.com/Tkd-Alex/Twitch-Channel-Points-Miner-v2/issues/47)                                       |
