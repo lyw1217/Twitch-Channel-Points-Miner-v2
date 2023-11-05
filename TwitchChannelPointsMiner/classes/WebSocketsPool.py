@@ -2,7 +2,9 @@ import json
 import logging
 import random
 import time
+# import os
 from threading import Thread, Timer
+# from pathlib import Path
 
 from dateutil import parser
 
@@ -52,8 +54,7 @@ class WebSocketsPool:
         if self.ws[index].is_opened is False:
             self.ws[index].pending_topics.append(topic)
         else:
-            self.ws[index].listen(
-                topic, self.twitch.twitch_login.get_auth_token())
+            self.ws[index].listen(topic, self.twitch.twitch_login.get_auth_token())
 
     def __new(self, index):
         return TwitchWebSocket(
@@ -70,8 +71,12 @@ class WebSocketsPool:
     def __start(self, index):
         if Settings.disable_ssl_cert_verification is True:
             import ssl
-            thread_ws = Thread(target=lambda: self.ws[index].run_forever(
-                sslopt={"cert_reqs": ssl.CERT_NONE}))
+
+            thread_ws = Thread(
+                target=lambda: self.ws[index].run_forever(
+                    sslopt={"cert_reqs": ssl.CERT_NONE}
+                )
+            )
             logger.warn("SSL certificate verification is disabled! Be aware!")
         else:
             thread_ws = Thread(target=lambda: self.ws[index].run_forever())
@@ -96,7 +101,7 @@ class WebSocketsPool:
             while ws.is_closed is False:
                 # Else: the ws is currently in reconnecting phase, you can't do ping or other operation.
                 # Probably this ws will be closed very soon with ws.is_closed = True
-                if ws.is_reconneting is False:
+                if ws.is_reconnecting is False:
                     ws.ping()  # We need ping for keep the connection alive
                     time.sleep(random.uniform(25, 30))
 
@@ -124,38 +129,40 @@ class WebSocketsPool:
 
     @staticmethod
     def handle_reconnection(ws):
-        # Close the current WebSocket.
-        ws.is_closed = True
-        ws.keep_running = False
-        # Reconnect only if ws.forced_close is False (replace the keep_running)
+        # Reconnect only if ws.is_reconnecting is False to prevent more than 1 ws from being created
+        if ws.is_reconnecting is False:
+            # Close the current WebSocket.
+            ws.is_closed = True
+            ws.keep_running = False
+            # Reconnect only if ws.forced_close is False (replace the keep_running)
 
-        # Set the current socket as reconnecting status
-        # So the external ping check will be locked
-        ws.is_reconneting = True
+            # Set the current socket as reconnecting status
+            # So the external ping check will be locked
+            ws.is_reconnecting = True
 
-        if ws.forced_close is False:
-            logger.info(
-                f"#{ws.index} - Reconnecting to Twitch PubSub server in ~60 seconds"
-            )
-            time.sleep(30)
-
-            while internet_connection_available() is False:
-                random_sleep = random.randint(1, 3)
-                logger.warning(
-                    f"#{ws.index} - No internet connection available! Retry after {random_sleep}m"
+            if ws.forced_close is False:
+                logger.info(
+                    f"#{ws.index} - Reconnecting to Twitch PubSub server in ~60 seconds"
                 )
-                time.sleep(random_sleep * 60)
+                time.sleep(30)
 
-            # Why not create a new ws on the same array index? Let's try.
-            self = ws.parent_pool
-            # Create a new connection.
-            self.ws[ws.index] = self.__new(ws.index)
+                while internet_connection_available() is False:
+                    random_sleep = random.randint(1, 3)
+                    logger.warning(
+                        f"#{ws.index} - No internet connection available! Retry after {random_sleep}m"
+                    )
+                    time.sleep(random_sleep * 60)
 
-            self.__start(ws.index)  # Start a new thread.
-            time.sleep(30)
+                # Why not create a new ws on the same array index? Let's try.
+                self = ws.parent_pool
+                # Create a new connection.
+                self.ws[ws.index] = self.__new(ws.index)
 
-            for topic in ws.topics:
-                self.__submit(ws.index, topic)
+                self.__start(ws.index)  # Start a new thread.
+                time.sleep(30)
+
+                for topic in ws.topics:
+                    self.__submit(ws.index, topic)
 
     @staticmethod
     def on_message(ws, message):
@@ -179,8 +186,7 @@ class WebSocketsPool:
             ws.last_message_timestamp = message.timestamp
             ws.last_message_type_channel = message.identifier
 
-            streamer_index = get_streamer_index(
-                ws.streamers, message.channel_id)
+            streamer_index = get_streamer_index(ws.streamers, message.channel_id)
             if streamer_index != -1:
                 try:
                     if message.topic == "community-points-user-v1":
@@ -239,14 +245,12 @@ class WebSocketsPool:
                                 message.message["raid"]["id"],
                                 message.message["raid"]["target_login"],
                             )
-                            ws.twitch.update_raid(
-                                ws.streamers[streamer_index], raid)
+                            ws.twitch.update_raid(ws.streamers[streamer_index], raid)
 
                     elif message.topic == "community-moments-channel-v1":
                         if message.type == "active":
                             ws.twitch.claim_moment(
-                                ws.streamers[streamer_index],
-                                message.data["moment_id"]
+                                ws.streamers[streamer_index], message.data["moment_id"]
                             )
 
                     elif message.topic == "predictions-channel-v1":
@@ -378,10 +382,12 @@ class WebSocketsPool:
                                         counter=-1,
                                     )
 
-                                if event_prediction.result["type"] != "LOSE":
+                                if event_prediction.result["type"]:
                                     # Analytics switch
                                     if Settings.enable_analytics is True:
-                                        ws.streamers[streamer_index].persistent_annotations(
+                                        ws.streamers[
+                                            streamer_index
+                                        ].persistent_annotations(
                                             event_prediction.result["type"],
                                             f"{ws.events_predictions[event_id].title}",
                                         )
@@ -400,8 +406,25 @@ class WebSocketsPool:
                     )
 
         elif response["type"] == "RESPONSE" and len(response.get("error", "")) > 0:
-            raise RuntimeError(
-                f"Error while trying to listen for a topic: {response}")
+            # raise RuntimeError(f"Error while trying to listen for a topic: {response}")
+            error_message = response.get("error", "")
+            logger.error(f"Error while trying to listen for a topic: {error_message}")
+            
+            # Check if the error message indicates an authentication issue (ERR_BADAUTH)
+            if "ERR_BADAUTH" in error_message:
+                # Inform the user about the potential outdated cookie file
+                username = ws.twitch.twitch_login.username
+                logger.error(f"Received the ERR_BADAUTH error, most likely you have an outdated cookie file \"cookies\\{username}.pkl\". Delete this file and try again.")
+                # Attempt to delete the outdated cookie file
+                # try:
+                #     cookie_file_path = os.path.join("cookies", f"{username}.pkl")
+                #     if os.path.exists(cookie_file_path):
+                #         os.remove(cookie_file_path)
+                #         logger.info(f"Deleted outdated cookie file for user: {username}")
+                #     else:
+                #         logger.warning(f"Cookie file not found for user: {username}")
+                # except Exception as e:
+                #     logger.error(f"Error occurred while deleting cookie file: {str(e)}")
 
         elif response["type"] == "RECONNECT":
             logger.info(f"#{ws.index} - Reconnection required")

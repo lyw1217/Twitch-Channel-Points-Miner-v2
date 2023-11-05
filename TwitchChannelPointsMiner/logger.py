@@ -15,6 +15,7 @@ from TwitchChannelPointsMiner.classes.Discord import Discord
 from TwitchChannelPointsMiner.classes.Matrix import Matrix
 from TwitchChannelPointsMiner.classes.Settings import Events
 from TwitchChannelPointsMiner.classes.Telegram import Telegram
+from TwitchChannelPointsMiner.classes.Pushover import Pushover
 from TwitchChannelPointsMiner.utils import remove_emoji
 
 
@@ -74,7 +75,9 @@ class LoggerSettings:
         "auto_clear",
         "telegram",
         "discord",
-        "matrix"
+        "matrix",
+        "pushover",
+        "username"
     ]
 
     def __init__(
@@ -91,7 +94,9 @@ class LoggerSettings:
         auto_clear: bool = True,
         telegram: Telegram or None = None,
         discord: Discord or None = None,
-        matrix: Matrix or None = None
+        matrix: Matrix or None = None,
+        pushover: Pushover or None = None,
+        username: str or None = None
     ):
         self.save = save
         self.less = less
@@ -106,6 +111,8 @@ class LoggerSettings:
         self.telegram = telegram
         self.discord = discord
         self.matrix = matrix
+        self.pushover = pushover
+        self.username = username
 
 
 class FileFormatter(logging.Formatter):
@@ -173,10 +180,13 @@ class GlobalFormatter(logging.Formatter):
             # Full remove using a method from utils.
             record.msg = remove_emoji(record.msg)
 
+        record.msg = self.settings.username + record.msg
+
         if hasattr(record, "event"):
             self.telegram(record)
             self.discord(record)
             self.matrix(record)
+            self.pushover(record)
 
             if self.settings.colored is True:
                 record.msg = (
@@ -220,6 +230,18 @@ class GlobalFormatter(logging.Formatter):
         ):
             self.settings.matrix.send(record.msg, record.event)
 
+    def pushover(self, record):
+        skip_pushover = False if hasattr(
+            record, "skip_pushover") is False else True
+
+        if (
+            self.settings.pushover is not None
+            and skip_pushover is False
+            and self.settings.pushover.userkey != "YOUR-ACCOUNT-TOKEN"
+            and self.settings.pushover.token != "YOUR-APPLICATION-TOKEN"
+        ):
+            self.settings.pushover.send(record.msg, record.event)
+
 
 def configure_loggers(username, settings):
     if settings.colored is True:
@@ -237,15 +259,16 @@ def configure_loggers(username, settings):
     # Adding a username to the format based on settings
     console_username = "" if settings.console_username is False else f"[{username}] "
 
+    settings.username = console_username
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(settings.console_level)
     console_handler.setFormatter(
         GlobalFormatter(
             fmt=(
-                "%(asctime)s - %(levelname)s - [%(funcName)s]: " +
-                console_username + "%(message)s"
+                "%(asctime)s - %(levelname)s - [%(funcName)s]: %(message)s"
                 if settings.less is False
-                else "%(asctime)s - " + console_username + "%(message)s"
+                else "%(asctime)s - %(message)s"
             ),
             datefmt=(
                 "%d/%m/%y %H:%M:%S" if settings.less is False else "%d/%m %H:%M:%S"

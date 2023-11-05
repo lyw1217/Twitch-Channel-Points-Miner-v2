@@ -173,7 +173,7 @@ class Streamer(object):
         return (
             self.settings.claim_drops is True
             and self.is_online is True
-            and self.stream.drops_tags is True
+            # and self.stream.drops_tags is True
             and self.stream.campaigns_ids != []
         )
 
@@ -207,11 +207,11 @@ class Streamer(object):
     # === ANALYTICS === #
     def persistent_annotations(self, event_type, event_text):
         event_type = event_type.upper()
-        if event_type in ["WATCH_STREAK", "WIN", "PREDICTION_MADE"]:
+        if event_type in ["WATCH_STREAK", "WIN", "PREDICTION_MADE", "LOSE"]:
             primary_color = (
-                "#45c1ff"
+                "#45c1ff"  # blue #45c1ff yellow #ffe045 green #36b535 red #ff4545
                 if event_type == "WATCH_STREAK"
-                else ("#ffe045" if event_type == "PREDICTION_MADE" else "#54ff45")
+                else ("#ffe045" if event_type == "PREDICTION_MADE" else ("#36b535" if event_type == "WIN" else "#ff4545"))
             )
             data = {
                 "borderColor": primary_color,
@@ -236,14 +236,20 @@ class Streamer(object):
                 data.update({"z": event_type.replace("_", " ").title()})
 
         fname = os.path.join(Settings.analytics_path, f"{self.username}.json")
-        with self.mutex:
-            json_data = json.load(
-                open(fname, "r")) if os.path.isfile(fname) else {}
-            if key not in json_data:
-                json_data[key] = []
+        temp_fname = fname + '.temp'  # Temporary file name
 
-            json_data[key].append(data)
-            json.dump(json_data, open(fname, "w"), indent=4)
+        with self.mutex:
+            # Create and write to the temporary file
+            with open(temp_fname, "w") as temp_file:
+                json_data = json.load(
+                    open(fname, "r")) if os.path.isfile(fname) else {}
+                if key not in json_data:
+                    json_data[key] = []
+                json_data[key].append(data)
+                json.dump(json_data, temp_file, indent=4)
+
+            # Replace the original file with the temporary file
+            os.replace(temp_fname, fname)
 
     def leave_chat(self):
         if self.irc_chat is not None:

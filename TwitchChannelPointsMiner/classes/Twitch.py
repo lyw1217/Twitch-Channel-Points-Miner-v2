@@ -108,13 +108,17 @@ class Twitch(object):
                     "broadcast_id": streamer.stream.broadcast_id,
                     "player": "site",
                     "user_id": self.twitch_login.get_user_id(),
+                    "live": True,
+                    "channel": streamer.username
                 }
 
                 if (
                     streamer.stream.game_name() is not None
+                    and streamer.stream.game_id() is not None
                     and streamer.settings.claim_drops is True
                 ):
                     event_properties["game"] = streamer.stream.game_name()
+                    event_properties["game_id"] = streamer.stream.game_id()
                     # Update also the campaigns_ids so we are sure to tracking the correct campaign
                     streamer.stream.campaigns_ids = (
                         self.__get_campaign_ids_from_streamer(streamer)
@@ -429,7 +433,7 @@ class Twitch(object):
                                     )
                                     > 30
                                 )
-                                and streamers[index].stream.minute_watched < 7
+                                and streamers[index].stream.minute_watched < 1
                             ):
                                 streamers_watching.append(index)
                                 if len(streamers_watching) == 2:
@@ -694,10 +698,12 @@ class Twitch(object):
 
     def __get_drops_dashboard(self, status=None):
         response = self.post_gql_request(GQLOperations.ViewerDropsDashboard)
-        campaigns = response["data"]["currentUser"]["dropCampaigns"]
+        campaigns = response["data"]["currentUser"]["dropCampaigns"] or []
+
         if status is not None:
             campaigns = list(
-                filter(lambda x: x["status"] == status.upper(), campaigns))
+                filter(lambda x: x["status"] == status.upper(), campaigns)) or []
+
         return campaigns
 
     def __get_campaigns_details(self, campaigns):
@@ -790,9 +796,19 @@ class Twitch(object):
                 # Get update from dashboard each 60minutes
                 if (
                     campaigns_update == 0
-                    or ((time.time() - campaigns_update) / 60) > 60
+                    # or ((time.time() - campaigns_update) / 60) > 60
+
+                    # TEMPORARY AUTO DROP CLAIMING FIX
+                    # 30 minutes instead of 60 minutes
+                    or ((time.time() - campaigns_update) / 30) > 30
+                    #####################################
                 ):
                     campaigns_update = time.time()
+
+                    # TEMPORARY AUTO DROP CLAIMING FIX
+                    self.claim_all_drops_from_inventory()
+                    #####################################
+
                     # Get full details from current ACTIVE campaigns
                     # Use dashboard so we can explore new drops not currently active in our Inventory
                     campaigns_details = self.__get_campaigns_details(

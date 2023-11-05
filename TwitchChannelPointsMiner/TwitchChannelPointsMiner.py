@@ -122,7 +122,8 @@ class TwitchChannelPointsMiner:
 
         if enable_analytics is True:
             Settings.analytics_path = os.path.join(
-                Path().absolute(), "analytics", username)
+                Path().absolute(), "analytics", username
+            )
             Path(Settings.analytics_path).mkdir(parents=True, exist_ok=True)
 
         self.username = username
@@ -161,7 +162,8 @@ class TwitchChannelPointsMiner:
         current_version, github_version = check_versions()
 
         logger.info(
-            f"Twitch Channel Points Miner v2-{current_version} (fork by rdavydov)")
+            f"Twitch Channel Points Miner v2-{current_version} (fork by rdavydov)"
+        )
         logger.info(
             "https://github.com/rdavydov/Twitch-Channel-Points-Miner-v2")
 
@@ -171,8 +173,8 @@ class TwitchChannelPointsMiner:
             )
         elif current_version != github_version:
             logger.info(
-                f"You are running the version {current_version} of this script")
-            logger.info(f"The latest version on GitHub is: {github_version}")
+                f"You are running version {current_version} of this script")
+            logger.info(f"The latest version on GitHub is {github_version}")
 
         for sign in [signal.SIGINT, signal.SIGSEGV, signal.SIGTERM]:
             signal.signal(sign, self.end)
@@ -189,7 +191,7 @@ class TwitchChannelPointsMiner:
             from TwitchChannelPointsMiner.classes.AnalyticsServer import AnalyticsServer
 
             http_server = AnalyticsServer(
-                host=host, port=port, refresh=refresh, days_ago=days_ago
+                host=host, port=port, refresh=refresh, days_ago=days_ago, username=self.username
             )
             http_server.daemon = True
             http_server.name = "Analytics Thread"
@@ -386,7 +388,7 @@ class TwitchChannelPointsMiner:
                 # Check if is not None because maybe we have already created a new connection on array+1 and now index is None
                 for index in range(0, len(self.ws_pool.ws)):
                     if (
-                        self.ws_pool.ws[index].is_reconneting is False
+                        self.ws_pool.ws[index].is_reconnecting is False
                         and self.ws_pool.ws[index].elapsed_last_ping() > 10
                         and internet_connection_available() is True
                     ):
