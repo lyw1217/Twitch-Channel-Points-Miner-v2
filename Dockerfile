@@ -41,6 +41,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --fix-missing --no-ins
 
 ADD ./TwitchChannelPointsMiner ./TwitchChannelPointsMiner
 
-EXPOSE 5000
+#EXPOSE 5000
 
 ENTRYPOINT [ "python", "run.py" ]

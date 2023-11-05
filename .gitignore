@@ -155,3 +155,9 @@ analytics/*
 keep_replit_alive.py
 .replit
 replit.nix
+
+user1.py
+user2.py
+user3.py
+user4.py
+user5.py
